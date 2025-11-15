@@ -9,7 +9,7 @@ export default function Orders() {
   const loadOrders = () => {
     setLoading(true);
     orderService
-      .list(userId)
+      .list()
       .then((res) => setOrders(res.data))
       .finally(() => setLoading(false));
   };

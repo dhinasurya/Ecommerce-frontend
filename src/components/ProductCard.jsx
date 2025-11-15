@@ -5,7 +5,7 @@ export default function ProductCard({ product }) {
 
   const handleAdd = () => {
     cartService
-      .addToCart(userId, product.id, 1)
+      .addToCart(product.id, 1)
       .then(() => alert("Added to cart!"))
       .catch((err) => console.error(err));
   };

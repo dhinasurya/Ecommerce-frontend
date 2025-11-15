@@ -1,25 +1,38 @@
 import { useEffect, useState } from "react";
 import { cartService } from "../services/api";
+import useAuth from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
-  const userId = 1;
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    }
+  }, [token, navigate]);
+
+  // Load cart once user is available
+  useEffect(() => {
+    if (user?.id) loadCart();
+  }, [user]);
+
   const loadCart = () => {
     setLoading(true);
     cartService
-      .getCart(userId)
+      .getCart()
       .then((res) => setCart(res.data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadCart();
-  }, []);
-
   if (loading) return <p>Loading cart...</p>;
+
   if (!cart || cart.items.length === 0)
     return <h3 style={{ padding: "2rem" }}>Cart is empty.</h3>;
 
@@ -40,7 +53,7 @@ export default function Cart() {
             onClick={() => {
               setActionLoading(true);
               cartService
-                .removeFromCart(userId, item.product_id, 1)
+                .removeFromCart(item.product_id, 1)
                 .then(loadCart)
                 .finally(() => setActionLoading(false));
             }}
@@ -54,7 +67,7 @@ export default function Cart() {
             onClick={() => {
               setActionLoading(true);
               cartService
-                .removeFromCart(userId, item.product_id, item.quantity)
+                .removeFromCart(item.product_id, item.quantity)
                 .then(loadCart)
                 .finally(() => setActionLoading(false));
             }}
@@ -68,7 +81,7 @@ export default function Cart() {
             onClick={() => {
               setActionLoading(true);
               cartService
-                .addToCart(userId, item.product_id, 1)
+                .addToCart(item.product_id, 1)
                 .then(loadCart)
                 .finally(() => setActionLoading(false));
             }}
@@ -84,7 +97,7 @@ export default function Cart() {
         disabled={actionLoading}
         style={checkoutBtn}
         onClick={() =>
-          cartService.checkout(userId).then(() => {
+          cartService.checkout().then(() => {
             alert("Order placed!");
             loadCart();
           })
